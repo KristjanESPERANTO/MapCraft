@@ -1,0 +1,41 @@
+{
+  "name": "mapcraft",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+  "fetch:adm0": "node scripts/fetch-geo.js DEU,FRA --adm ADM0",
+  "fetch:adm1": "node scripts/fetch-geo.js DEU,FRA --adm ADM1",
+  "fetch:all:adm0": "node scripts/fetch-geo-all.js scripts/iso3-adm0.txt ADM0",
+  "fetch:all:adm1": "node scripts/fetch-geo-all.js scripts/iso3-adm0.txt ADM1",
+  "fetch:single": "node scripts/fetch-geo.js",
+  "fetch:all": "bash scripts/fetch-all.sh"
+  },
+  "dependencies": {
+    "@mapbox/mapbox-gl-draw": "^1.5.0",
+    "adm-zip": "^0.5.12",
+    "d3-geo": "^3.1.1",
+    "geojson2svg": "^2.0.3",
+    "idb-keyval": "^6.2.2",
+    "lz-string": "^1.5.0",
+    "maplibre-gl": "^2.4.0",
+  "qrcode": "^1.5.4",
+  "react": "^19.1.1",
+  "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/d3-geo": "^3.1.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/mapbox__mapbox-gl-draw": "^1.4.9",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+  "@types/topojson-client": "^3.1.5",
+  "topojson-client": "^3.1.0",
+    "@vitejs/plugin-react": "^5.0.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.4"
+  }
+}

@@ -1,0 +1,41 @@
+name: Fetch geoBoundaries (on-demand)
+
+on:
+  workflow_dispatch:
+    inputs:
+      adm:
+        description: "ADM level to fetch (ADM0 or ADM1)"
+        required: true
+        default: "ADM0"
+      listPath:
+        description: "Path to ISO3 list file"
+        required: false
+        default: "scripts/iso3-adm0.txt"
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch boundaries
+        run: |
+          node scripts/fetch-geo-all.js ${{ github.event.inputs.listPath }} ${{ github.event.inputs.adm }}
+
+      - name: Upload artifact (public data)
+        uses: actions/upload-artifact@v4
+        with:
+          name: gbOpen-${{ github.event.inputs.adm }}
+          path: public/data/gbOpen
+          if-no-files-found: warn
+          retention-days: 14
