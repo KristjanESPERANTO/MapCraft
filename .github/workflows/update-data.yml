@@ -1,0 +1,65 @@
+name: Update geoBoundaries Data
+
+on:
+  schedule:
+    # Run monthly on the 1st at 00:00 UTC
+    - cron: '0 0 1 * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for geoBoundaries updates
+        id: check
+        run: |
+          # Check a few sample countries for updates
+          node scripts/check-updates.js DEU,FRA,USA,CHN
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch updated data if changes detected
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          # Fetch all current data (or only updated ones if script supports it)
+          node scripts/fetch-geo-all.js
+
+      - name: Commit and push updates
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add public/data/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update geoBoundaries data (automated - $(date +%Y-%m-%d))"
+            git push
+          fi
+
+      - name: Create issue if updates available but failed
+        if: failure() && steps.check.outputs.has_updates == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Update geoBoundaries Data',
+              body: 'Automated check detected new geoBoundaries data. Please review and update manually if needed.',
+              labels: ['data-update', 'automated']
+            })

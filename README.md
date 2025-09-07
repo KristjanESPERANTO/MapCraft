@@ -1,6 +1,6 @@
 # 🌐 MapCraft
 
-MapCraft is a lightweight, frontend‑only map composer to load and style country boundaries (geoBoundaries), draw simple shapes, and export clean SVGs for teaching, research, and design.
+**MapCraft** is a lightweight, frontend‑only map composer to load and style country boundaries ([geoBoundaries](https://github.com/wmgeolab/geoBoundaries/)), draw simple shapes, and export clean SVGs for teaching, research, and design.
 
 ## 🗺️ Country Selection & Display
 
@@ -8,7 +8,7 @@ MapCraft is a lightweight, frontend‑only map composer to load and style countr
   - **Search by Name**: Interactive autocomplete search with country names (e.g., "Germany", "France")
   - **ISO3 Codes**: Manual input of ISO3 country codes (e.g., "DEU,FRA")
 - **Selected Countries Display**: Visual tags showing selected countries with easy removal
-- **Boundary Data**: Country boundaries from geoBoundaries, loaded on demand as GeoJSON (TopoJSON is only used in build scripts when conversion is needed).
+- **Boundary Data**: Country boundaries from geoBoundaries (using simplified geometries for better performance and smaller file sizes), loaded on demand as GeoJSON (TopoJSON is only used in build scripts when conversion is needed).
 - **Combining Multiple Countries**: Ideal for comparisons, geopolitical analyses, or historical contexts.
 - **Individual Styling**:
   - Per-country fill color, border color, and border width.
