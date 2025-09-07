@@ -17,7 +17,8 @@ export default function App() {
   const [admLevel, setAdmLevel] = useState<'ADM0'|'ADM1'>('ADM0')
   const [boundaries, setBoundaries] = useState<FeatureCollection<Geometry>>({ type: 'FeatureCollection', features: [] })
   const [status, setStatus] = useState<string>('Ready')
-  const [styleKeyProp] = useState<string>('shapeGroup')
+  // Use a MapCraft-specific key so each loaded ISO3 gets a stable, unique style
+  const [styleKeyProp] = useState<string>('mapcraftKey')
   const [stylesByKey, setStylesByKey] = useState<Record<string, { fill?: string; stroke?: string; strokeWidth?: number }>>({})
   const [panelExpanded, setPanelExpanded] = useState<boolean>(true)
   const [selectedCountries, setSelectedCountries] = useState<Country[]>([])
@@ -287,7 +288,14 @@ export default function App() {
               let fc: FeatureCollection<Geometry>
               // Assume all local files are GeoJSON (no TopoJSON conversion needed)
               fc = gj.type === 'FeatureCollection' ? gj : { type: 'FeatureCollection', features: [gj] }
-              fcs.push(fc)
+              const tagged: FeatureCollection<Geometry> = {
+                type: 'FeatureCollection',
+                features: (fc.features as any[]).map((f) => ({
+                  ...f,
+                  properties: { ...(f.properties || {}), [styleKeyProp]: iso },
+                }))
+              }
+              fcs.push(tagged)
               loadedLocal = true
                 badges.push(metaBadge ? `${metaBadge} ✓ local` : `${iso}✓ local`)
               break // stop checking local candidates
@@ -308,7 +316,15 @@ export default function App() {
         let fc: FeatureCollection<Geometry>
         // Assume all remote data is GeoJSON (no TopoJSON conversion needed)
         fc = gj.type === 'FeatureCollection' ? gj : { type: 'FeatureCollection', features: [gj] }
-        fcs.push(fc)
+        // Tag each feature with a stable MapCraft key per-ISO for consistent per-country styling
+        const tagged: FeatureCollection<Geometry> = {
+          type: 'FeatureCollection',
+          features: (fc.features as any[]).map((f) => ({
+            ...f,
+            properties: { ...(f.properties || {}), [styleKeyProp]: iso },
+          }))
+        }
+        fcs.push(tagged)
         badges.push(`${iso}⤓ remote`)
       }
 
@@ -504,6 +520,23 @@ export default function App() {
     return { fill, stroke }
   }
 
+  // Distinct categorical palette (>= 10 colors) for clearer separation across many countries
+  const CATEGORICAL_PALETTE: string[] = [
+    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+    '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173'
+  ]
+  function darkenHex(hex: string, amount: number): string {
+    // amount in [0,1]; 0.25 makes it 25% darker
+    const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex)
+    if (!m) return hex
+    const r = Math.max(0, Math.min(255, Math.round(parseInt(m[1], 16) * (1 - amount))))
+    const g = Math.max(0, Math.min(255, Math.round(parseInt(m[2], 16) * (1 - amount))))
+    const b = Math.max(0, Math.min(255, Math.round(parseInt(m[3], 16) * (1 - amount))))
+    const toHex = (v: number) => v.toString(16).padStart(2, '0')
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+  }
+
   // Initialize missing styles with deterministic pastels when boundaries change
   useEffect(() => {
   const keys = uniqStyleKeys()
@@ -512,14 +545,18 @@ export default function App() {
     const next: Record<string, { fill?: string; stroke?: string; strokeWidth?: number }> = { ...stylesByKey }
     for (const k of keys) {
       if (!next[k]) {
-        const { fill, stroke } = pastelForKey(k)
-  next[k] = { fill, stroke, strokeWidth: 1.5 }
+        const i = keys.indexOf(k)
+        const fill = CATEGORICAL_PALETTE.length ? CATEGORICAL_PALETTE[i % CATEGORICAL_PALETTE.length] : pastelForKey(k).fill
+        const stroke = darkenHex(fill, 0.35)
+        next[k] = { fill, stroke, strokeWidth: 1.5 }
         changed = true
       } else {
         // backfill missing fields if any
         const cur = next[k]
         if (!cur.fill || !cur.stroke) {
-          const { fill, stroke } = pastelForKey(k)
+          const i = keys.indexOf(k)
+          const fill = CATEGORICAL_PALETTE.length ? CATEGORICAL_PALETTE[i % CATEGORICAL_PALETTE.length] : pastelForKey(k).fill
+          const stroke = darkenHex(fill, 0.35)
           if (!cur.fill) cur.fill = fill
           if (!cur.stroke) cur.stroke = stroke
           if (typeof cur.strokeWidth !== 'number') cur.strokeWidth = 1.5
