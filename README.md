@@ -1,5 +1,7 @@
 # 🌐 MapCraft
 
+MapCraft is a lightweight, frontend‑only map composer to load and style country boundaries (geoBoundaries), draw simple shapes, and export clean SVGs for teaching, research, and design.
+
 ## 🗺️ Country Selection & Display
 
 - **Country Selection**: Users can select countries in two ways:

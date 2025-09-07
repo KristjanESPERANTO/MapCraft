@@ -2,6 +2,7 @@
   "name": "mapcraft",
   "version": "0.1.0",
   "private": true,
+  "description": "Frontend-only map composer to load/style geoBoundaries and export SVGs.",
   "type": "module",
   "scripts": {
     "dev": "vite",
