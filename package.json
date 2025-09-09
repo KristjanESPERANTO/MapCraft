@@ -37,6 +37,6 @@
   "topojson-client": "^3.1.0",
     "@vitejs/plugin-react": "^5.0.2",
     "typescript": "^5.9.2",
-    "vite": "^7.1.4"
+    "vite": "^7.1.5"
   }
 }
